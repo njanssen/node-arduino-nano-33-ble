@@ -1,0 +1,34 @@
+{
+  "name": "@vliegwerk/arduino-nano-33-ble",
+  "version": "1.0.0",
+  "description": "Node.js interface for the Arduino Nano 33 BLE and Arduino Nano 33 BLE Sense",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/njanssen/node-arduino-nano-33-ble.git"
+  },
+  "author": "Niels Janssen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/njanssen/node-arduino-nano-33-ble/issues"
+  },
+  "keywords": [
+    "arduino",
+    "nano",
+    "ble",
+    "sense",
+    "bluetooth",
+    "sensor",
+    "imu",
+    "accelerometer",
+    "gyroscope",
+    "magnetometer"
+  ],
+  "homepage": "https://github.com/njanssen/node-arduino-nano-33-ble#readme",
+  "dependencies": {
+    "webbluetooth": "^1.3.0"
+  }
+}
