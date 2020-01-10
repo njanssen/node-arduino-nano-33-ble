@@ -1,12 +1,13 @@
 'use strict'
 const EventEmitter = require('events')
-const { Bluetooth, BluetoothRemoteGATTService } = require('webbluetooth')
+const { Bluetooth, BluetoothDevice } = require('webbluetooth')
 
 const SERVICE_UUID = '6fbe1da7-0000-44de-92c4-bb6e04fb0212'
 
 const ACCELEROMETER = 'accelerometer'
 const GYROSCOPE = 'gyroscope'
 const MAGNETOMETER = 'magnetometer'
+const ORIENTATION = 'orientation'
 const COLORIMETER = 'colorimeter'
 const MICROPHONE = 'microphone'
 const PROXIMITY = 'proximity'
@@ -62,6 +63,12 @@ class Arduino extends EventEmitter {
 				properties: ['BLENotify'],
 				structure: ['Float32', 'Float32', 'Float32'],
 				data: { x: [], y: [], z: [] }
+			},
+			[ORIENTATION]: {
+				uuid: '6fbe1da7-3004-44de-92c4-bb6e04fb0212',
+				properties: ['BLENotify'],
+				structure: ['Float32', 'Float32', 'Float32'],
+				data: { heading: [], pitch: [], roll: [] }
 			},
 			[COLORIMETER]: {
 				uuid: '6fbe1da7-2002-44de-92c4-bb6e04fb0212',
@@ -138,7 +145,7 @@ class Arduino extends EventEmitter {
 	}
 
 	connect = async () => {
-		if (!await this.bluetooth.getAvailability()) {
+		if (!(await this.bluetooth.getAvailability())) {
 			throw new Error('No Bluetooth interface available')
 		}
 
@@ -150,7 +157,7 @@ class Arduino extends EventEmitter {
 			]
 		})
 
-		device.addEventListener('gattserverdisconnected', event =>
+		device.addEventListener(BluetoothDevice.EVENT_DISCONNECTED, event =>
 			this.onDisconnected(event)
 		)
 
@@ -245,8 +252,7 @@ class Arduino extends EventEmitter {
 				clearInterval(this.characteristics[sensor].polling)
 			}
 		}
-
-		console.log(`Device ${device.name} is disconnected.`)
+		
 		this.emit(DISCONNECTED)
 	}
 
@@ -260,6 +266,10 @@ class Arduino extends EventEmitter {
 
 	static get MAGNETOMETER() {
 		return MAGNETOMETER
+	}
+
+	static get ORIENTATION() {
+		return ORIENTATION
 	}
 
 	static get COLORIMETER() {
@@ -297,7 +307,6 @@ class Arduino extends EventEmitter {
 	static get ERROR() {
 		return ERROR
 	}
-
 }
 
 module.exports = Arduino
