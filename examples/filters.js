@@ -1,4 +1,5 @@
 const Arduino = require('../')
+
 const arduino = new Arduino({
 	enable: ['accelerometer'],
 	mean: true,

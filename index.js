@@ -22,27 +22,26 @@ const SUFFIX_MEAN = '_mean'
 const SUFFIX_STDDEV = '_stddev'
 
 const OPTION_DEFAULTS = {
-	samples: 64,
-	pollingInterval: 500,
 	enable: [ACCELEROMETER, GYROSCOPE, MAGNETOMETER],
+	pollingInterval: 500,
 	mean: false,
-	stddev: false
+	stddev: false,
+	windowSize: 64
 }
-
 
 class Arduino extends EventEmitter {
 	constructor(options = {}) {
 		super()
 
 		const {
-			samples = OPTION_DEFAULTS.samples,
+			windowSize = OPTION_DEFAULTS.windowSize,
 			pollingInterval = OPTION_DEFAULTS.pollingInterval,
 			enable = OPTION_DEFAULTS.enable,
 			mean = OPTION_DEFAULTS.mean,
-			stddev = OPTION_DEFAULTS.stddev,
+			stddev = OPTION_DEFAULTS.stddev
 		} = options
 
-		this.samples = samples
+		this.windowSize = windowSize
 		this.pollingInterval = pollingInterval
 		this.enable = enable
 		this.mean = mean
@@ -50,7 +49,7 @@ class Arduino extends EventEmitter {
 
 		this.bluetooth = new Bluetooth()
 
-		// this.bluetooth.on(Bluetooth.EVENT_AVAILABILITY, () => {	
+		// this.bluetooth.on(Bluetooth.EVENT_AVAILABILITY, () => {
 		// })
 
 		this.characteristics = {
@@ -157,20 +156,26 @@ class Arduino extends EventEmitter {
 			throw new Error('No Bluetooth interface available')
 		}
 
-		const device = await this.bluetooth.requestDevice({
-			filters: [
-				{
-					services: [SERVICE_UUID]
-				}
-			]
-		})
+		let device
+		try {
+			device = await this.bluetooth.requestDevice({
+				filters: [
+					{
+						services: [SERVICE_UUID]
+					}
+				]
+			})
+		} catch (err) {
+			// Requsted device not found
+			return false
+		}
 
-		device.addEventListener(BluetoothDevice.EVENT_DISCONNECTED, event =>
+		device.on(BluetoothDevice.EVENT_DISCONNECTED, event =>
 			this.onDisconnected(event)
 		)
 
-		const server = await device.gatt.connect()
-		const service = await server.getPrimaryService(SERVICE_UUID)
+		this.server = await device.gatt.connect()
+		this.service = await this.server.getPrimaryService(SERVICE_UUID)
 
 		// Set up the characteristics
 		for (const sensor of this.sensors) {
@@ -178,13 +183,13 @@ class Arduino extends EventEmitter {
 
 			this.characteristics[
 				sensor
-			].characteristic = await service.getCharacteristic(
+			].characteristic = await this.service.getCharacteristic(
 				this.characteristics[sensor].uuid
 			)
 
 			// Set up notification
 			if (this.characteristics[sensor].properties.includes('BLENotify')) {
-				this.characteristics[sensor].characteristic.addEventListener(
+				this.characteristics[sensor].characteristic.on(
 					'characteristicvaluechanged',
 					event => {
 						this.handleIncoming(sensor, event.target.value)
@@ -208,6 +213,16 @@ class Arduino extends EventEmitter {
 		}
 
 		this.emit(CONNECTED, device.id)
+		return true
+	}
+
+	disconnect = () => {
+		this.server.disconnect()
+	}
+
+	isConnected = () => {
+		if (!this.server) return false
+		return this.server.connected
 	}
 
 	handleIncoming = (sensor, dataReceived) => {
@@ -224,7 +239,7 @@ class Arduino extends EventEmitter {
 		var packetPointer = 0
 		var i = 0
 
-		let values = {}		
+		let values = {}
 		let means = {}
 		let stddevs = {}
 
@@ -237,7 +252,7 @@ class Arduino extends EventEmitter {
 			// Push sensor reading onto data array
 			data[columns[i]].push(unpackedValue)
 			// Keep array at buffer size
-			if (data[columns[i]].length > this.samples) {
+			if (data[columns[i]].length > this.windowSize) {
 				data[columns[i]].shift()
 			}
 			// move pointer forward in data packet to next value
@@ -267,7 +282,7 @@ class Arduino extends EventEmitter {
 				clearInterval(this.characteristics[sensor].polling)
 			}
 		}
-		
+
 		this.emit(DISCONNECTED, device.id)
 	}
 
@@ -325,18 +340,23 @@ class Arduino extends EventEmitter {
 }
 
 // Arithmetic mean
-const mean = (arr) => {
-    return arr.reduce(function (a, b) {
-        return Number(a) + Number(b)
-    }) / arr.length
+const mean = arr => {
+	return (
+		arr.reduce(function(a, b) {
+			return Number(a) + Number(b)
+		}) / arr.length
+	)
 }
 
 // Standard deviation
-const stddev = (arr) => {
-    let m = mean(arr);
-    return Math.sqrt(arr.reduce(function (sq, n) {
-            return sq + Math.pow(n - m, 2)
-        }, 0) / (arr.length - 1))
+const stddev = arr => {
+	let m = mean(arr)
+	return Math.sqrt(
+		arr.reduce(function(sq, n) {
+			return sq + Math.pow(n - m, 2)
+		}, 0) /
+			(arr.length - 1)
+	)
 }
 
 module.exports = Arduino

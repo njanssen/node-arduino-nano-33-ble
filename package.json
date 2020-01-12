@@ -17,11 +17,11 @@
   },
   "keywords": [
     "arduino",
-    "nano",
+    "nano 33",
     "ble",
     "sense",
     "bluetooth",
-    "sensor",
+    "sensors",
     "imu",
     "accelerometer",
     "gyroscope",
