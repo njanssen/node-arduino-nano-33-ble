@@ -6,6 +6,10 @@ Node.js interface for the [Arduino Nano 33 BLE](https://www.arduino.cc/en/Guide/
 ## What does this library do?
 
 
+- Accelerometer
+- Gyroscope
+- Magnetometer
+
 
 ## Prerequisites
 
@@ -65,7 +69,6 @@ accelerometer: { x: 0.468017578125, y: -0.838134765625, z: 0.3150634765625 }
 ## Extras
 
 -   For more information about the Arduino Sketch used by this module, see the official [Arduino and AI](https://github.com/arduino/ArduinoAI) repository.
--   For more details about the sensors found on the Arduino Nano 33 BLE and Arduino Nano 33 BLE Sense, check out the documentation written by [Shantam Raj](https://armsp.github.io/nano-33-ble-gen/)
 -   See the [License](LICENSE) file for license rights and limitations (MIT).
 -   Pull Requests are welcome!
 

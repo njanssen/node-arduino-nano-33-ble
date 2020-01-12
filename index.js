@@ -18,32 +18,40 @@ const PRESSURE = 'pressure'
 const CONNECTED = 'connected'
 const DISCONNECTED = 'disconnected'
 const ERROR = 'error'
+const SUFFIX_MEAN = '_mean'
+const SUFFIX_STDDEV = '_stddev'
 
 const OPTION_DEFAULTS = {
-	maxRecords: 64,
+	samples: 64,
 	pollingInterval: 500,
-	enable: [ACCELEROMETER, GYROSCOPE, MAGNETOMETER]
+	enable: [ACCELEROMETER, GYROSCOPE, MAGNETOMETER],
+	mean: false,
+	stddev: false
 }
+
 
 class Arduino extends EventEmitter {
 	constructor(options = {}) {
 		super()
 
 		const {
-			maxRecords = OPTION_DEFAULTS.maxRecords,
+			samples = OPTION_DEFAULTS.samples,
 			pollingInterval = OPTION_DEFAULTS.pollingInterval,
-			enable = OPTION_DEFAULTS.enable
+			enable = OPTION_DEFAULTS.enable,
+			mean = OPTION_DEFAULTS.mean,
+			stddev = OPTION_DEFAULTS.stddev,
 		} = options
 
-		this.maxRecords = maxRecords
+		this.samples = samples
 		this.pollingInterval = pollingInterval
 		this.enable = enable
+		this.mean = mean
+		this.stddev = stddev
 
 		this.bluetooth = new Bluetooth()
 
-		this.bluetooth.on(Bluetooth.EVENT_AVAILABILITY, () => {
-			// TODO
-		})
+		// this.bluetooth.on(Bluetooth.EVENT_AVAILABILITY, () => {	
+		// })
 
 		this.characteristics = {
 			[ACCELEROMETER]: {
@@ -199,7 +207,7 @@ class Arduino extends EventEmitter {
 			}
 		}
 
-		this.emit(CONNECTED, device.name)
+		this.emit(CONNECTED, device.id)
 	}
 
 	handleIncoming = (sensor, dataReceived) => {
@@ -216,7 +224,9 @@ class Arduino extends EventEmitter {
 		var packetPointer = 0
 		var i = 0
 
-		let values = {}
+		let values = {}		
+		let means = {}
+		let stddevs = {}
 
 		// Read each sensor value in the BLE packet and push into the data array
 		characteristic.structure.forEach(dataType => {
@@ -226,19 +236,24 @@ class Arduino extends EventEmitter {
 			var unpackedValue = dataViewFn(packetPointer, true)
 			// Push sensor reading onto data array
 			data[columns[i]].push(unpackedValue)
-			// Push sensor reading onto values object used for notifying listeners
-			values[columns[i]] = unpackedValue
 			// Keep array at buffer size
-			if (data[columns[i]].length > this.maxRecords) {
+			if (data[columns[i]].length > this.samples) {
 				data[columns[i]].shift()
 			}
 			// move pointer forward in data packet to next value
 			packetPointer += typeMap[dataType].bytes
+			// Push sensor reading onto values object used for notifying listeners
+			values[columns[i]] = unpackedValue
+			if (this.mean) means[columns[i]] = mean(data[columns[i]])
+			if (this.stddev) stddevs[columns[i]] = stddev(data[columns[i]])
+			// Increment column counter
 			i++
 		})
 
 		// Notify listeners about new data
 		this.emit(sensor, values)
+		if (this.mean) this.emit(`${sensor}${SUFFIX_MEAN}`, means)
+		if (this.stddev) this.emit(`${sensor}${SUFFIX_STDDEV}`, stddevs)
 	}
 
 	onDisconnected = event => {
@@ -253,7 +268,7 @@ class Arduino extends EventEmitter {
 			}
 		}
 		
-		this.emit(DISCONNECTED)
+		this.emit(DISCONNECTED, device.id)
 	}
 
 	static get ACCELEROMETER() {
@@ -307,6 +322,21 @@ class Arduino extends EventEmitter {
 	static get ERROR() {
 		return ERROR
 	}
+}
+
+// Arithmetic mean
+const mean = (arr) => {
+    return arr.reduce(function (a, b) {
+        return Number(a) + Number(b)
+    }) / arr.length
+}
+
+// Standard deviation
+const stddev = (arr) => {
+    let m = mean(arr);
+    return Math.sqrt(arr.reduce(function (sq, n) {
+            return sq + Math.pow(n - m, 2)
+        }, 0) / (arr.length - 1))
 }
 
 module.exports = Arduino
