@@ -175,7 +175,7 @@ class Arduino extends EventEmitter {
 		)
 
 		this.server = await device.gatt.connect()
-		this.service = await this.server.getPrimaryService(SERVICE_UUID)
+		const service = await this.server.getPrimaryService(SERVICE_UUID)
 
 		// Set up the characteristics
 		for (const sensor of this.sensors) {
@@ -183,7 +183,7 @@ class Arduino extends EventEmitter {
 
 			this.characteristics[
 				sensor
-			].characteristic = await this.service.getCharacteristic(
+			].characteristic = await service.getCharacteristic(
 				this.characteristics[sensor].uuid
 			)
 
@@ -221,8 +221,7 @@ class Arduino extends EventEmitter {
 	}
 
 	isConnected = () => {
-		if (!this.server) return false
-		return this.server.connected
+		return !this.server ? false : this.server.connected
 	}
 
 	handleIncoming = (sensor, dataReceived) => {
