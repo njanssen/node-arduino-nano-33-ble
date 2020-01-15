@@ -96,5 +96,5 @@ For more examples, see the `examples` folder in the [node-arduino-nano-33-ble re
 ## Extras
 
 -   The bluetooth connectivity implementation of this library is based on the Web Dashboard example in the [Arduino and AI](https://github.com/arduino/ArduinoAI) repository by Arduino.
--   See the [License](LICENSE) file for license rights and limitations (MIT).
+-   See the [License](LICENSE) file for license rights and limitations (GPL).
 -   Pull Requests are welcome!

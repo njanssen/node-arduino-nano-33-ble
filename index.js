@@ -1,3 +1,23 @@
+/*
+   Node.js interface for the Arduino Nano 33 BLE and Nano 33 BLE Sense microcontroller board.
+
+   Copyright (C) 2019 Arduino SA [original work, https://github.com/arduino/ArduinoAI/blob/master/BLESense-test-dashboard/index.html]
+   Copyright (C) 2020 Niels Janssen // VLIEGWERK (https://www.vliegwerk.com)
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+   
+*/
 'use strict'
 const EventEmitter = require('events')
 const { Bluetooth, BluetoothDevice } = require('webbluetooth')
@@ -203,7 +223,11 @@ class Nano33BLE extends EventEmitter {
 				)
 
 				// Set up notification
-				if (this.characteristics[sensor].properties.includes('BLENotify')) {
+				if (
+					this.characteristics[sensor].properties.includes(
+						'BLENotify'
+					)
+				) {
 					this.characteristics[sensor].characteristic.on(
 						'characteristicvaluechanged',
 						event => {
@@ -216,7 +240,9 @@ class Nano33BLE extends EventEmitter {
 				}
 
 				// Set up polling for read
-				if (this.characteristics[sensor].properties.includes('BLERead')) {
+				if (
+					this.characteristics[sensor].properties.includes('BLERead')
+				) {
 					this.characteristics[sensor].polling = setInterval(() => {
 						this.characteristics[sensor].characteristic
 							.readValue()
@@ -226,7 +252,10 @@ class Nano33BLE extends EventEmitter {
 					}, this.pollingInterval)
 				}
 			} catch (err) {
-				this.emit(ERROR, `Characteristic ${sensor} is enabled, but not available in the BLE service`)
+				this.emit(
+					ERROR,
+					`Characteristic ${sensor} is enabled, but not available in the BLE service`
+				)
 			}
 		}
 
