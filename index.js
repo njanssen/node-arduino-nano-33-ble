@@ -2,18 +2,23 @@
 const EventEmitter = require('events')
 const { Bluetooth, BluetoothDevice } = require('webbluetooth')
 
-const SERVICE_UUID = '6fbe1da7-0000-44de-92c4-bb6e04fb0212'
+const SERVICE_UUID = 'e905de3e-0000-44de-92c4-bb6e04fb0212'
 
 const ACCELEROMETER = 'accelerometer'
 const GYROSCOPE = 'gyroscope'
 const MAGNETOMETER = 'magnetometer'
 const ORIENTATION = 'orientation'
-const COLORIMETER = 'colorimeter'
-const MICROPHONE = 'microphone'
+
+const LIGHT = 'light'
+const COLOR = 'color'
 const PROXIMITY = 'proximity'
+const GESTURE = 'gesture'
+
+const PRESSURE = 'pressure'
 const TEMPERATURE = 'temperature'
 const HUMIDITY = 'humidity'
-const PRESSURE = 'pressure'
+
+const MICROPHONE = 'microphone'
 
 const CONNECTED = 'connected'
 const DISCONNECTED = 'disconnected'
@@ -29,7 +34,7 @@ const OPTION_DEFAULTS = {
 	windowSize: 64
 }
 
-class Arduino extends EventEmitter {
+class Nano33BLE extends EventEmitter {
 	constructor(options = {}) {
 		super()
 
@@ -49,42 +54,75 @@ class Arduino extends EventEmitter {
 
 		this.bluetooth = new Bluetooth()
 
-		// this.bluetooth.on(Bluetooth.EVENT_AVAILABILITY, () => {
-		// })
-
 		this.characteristics = {
 			[ACCELEROMETER]: {
-				uuid: '6fbe1da7-3001-44de-92c4-bb6e04fb0212',
+				uuid: 'e905de3e-3001-44de-92c4-bb6e04fb0212',
 				properties: ['BLENotify'],
 				structure: ['Float32', 'Float32', 'Float32'],
 				data: { x: [], y: [], z: [] }
 			},
 			[GYROSCOPE]: {
-				uuid: '6fbe1da7-3002-44de-92c4-bb6e04fb0212',
+				uuid: 'e905de3e-3002-44de-92c4-bb6e04fb0212',
 				properties: ['BLENotify'],
 				structure: ['Float32', 'Float32', 'Float32'],
 				data: { x: [], y: [], z: [] }
 			},
 			[MAGNETOMETER]: {
-				uuid: '6fbe1da7-3003-44de-92c4-bb6e04fb0212',
+				uuid: 'e905de3e-3003-44de-92c4-bb6e04fb0212',
 				properties: ['BLENotify'],
 				structure: ['Float32', 'Float32', 'Float32'],
 				data: { x: [], y: [], z: [] }
 			},
 			[ORIENTATION]: {
-				uuid: '6fbe1da7-3004-44de-92c4-bb6e04fb0212',
+				uuid: 'e905de3e-3004-44de-92c4-bb6e04fb0212',
 				properties: ['BLENotify'],
 				structure: ['Float32', 'Float32', 'Float32'],
 				data: { heading: [], pitch: [], roll: [] }
 			},
-			[COLORIMETER]: {
-				uuid: '6fbe1da7-2002-44de-92c4-bb6e04fb0212',
+			[LIGHT]: {
+				uuid: 'e905de3e-2001-44de-92c4-bb6e04fb0212',
+				properties: ['BLENotify'],
+				structure: ['Uint16'],
+				data: { ambient: [] }
+			},
+			[COLOR]: {
+				uuid: 'e905de3e-2002-44de-92c4-bb6e04fb0212',
 				properties: ['BLENotify'],
 				structure: ['Uint16', 'Uint16', 'Uint16'],
 				data: { r: [], g: [], b: [] }
 			},
+			[PROXIMITY]: {
+				uuid: 'e905de3e-2003-44de-92c4-bb6e04fb0212',
+				properties: ['BLENotify'],
+				structure: ['Uint8'],
+				data: { proximity: [] }
+			},
+			[GESTURE]: {
+				uuid: 'e905de3e-2004-44de-92c4-bb6e04fb0212',
+				properties: ['BLENotify'],
+				structure: ['Uint8'],
+				data: { gesture: [] }
+			},
+			[PRESSURE]: {
+				uuid: 'e905de3e-4001-44de-92c4-bb6e04fb0212',
+				properties: ['BLERead'],
+				structure: ['Float32'],
+				data: { pressure: [] }
+			},
+			[TEMPERATURE]: {
+				uuid: 'e905de3e-4002-44de-92c4-bb6e04fb0212',
+				properties: ['BLERead'],
+				structure: ['Float32'],
+				data: { temperature: [] }
+			},
+			[HUMIDITY]: {
+				uuid: 'e905de3e-4003-44de-92c4-bb6e04fb0212',
+				properties: ['BLERead'],
+				structure: ['Float32'],
+				data: { humidity: [] }
+			},
 			[MICROPHONE]: {
-				uuid: '6fbe1da7-5001-44de-92c4-bb6e04fb0212',
+				uuid: 'e905de3e-5001-44de-92c4-bb6e04fb0212',
 				properties: ['BLENotify'],
 				structure: new Array(32).fill('Uint8'), // an array of 32 'Uint8's
 				data: {
@@ -121,30 +159,6 @@ class Arduino extends EventEmitter {
 					bE: [],
 					bF: []
 				}
-			},
-			[PROXIMITY]: {
-				uuid: '6fbe1da7-2003-44de-92c4-bb6e04fb0212',
-				properties: ['BLENotify'],
-				structure: ['Uint8'],
-				data: { proximity: [] }
-			},
-			[TEMPERATURE]: {
-				uuid: '6fbe1da7-4002-44de-92c4-bb6e04fb0212',
-				properties: ['BLERead'],
-				structure: ['Float32'],
-				data: { temperature: [] }
-			},
-			[HUMIDITY]: {
-				uuid: '6fbe1da7-4003-44de-92c4-bb6e04fb0212',
-				properties: ['BLERead'],
-				structure: ['Float32'],
-				data: { humidity: [] }
-			},
-			[PRESSURE]: {
-				uuid: '6fbe1da7-4001-44de-92c4-bb6e04fb0212',
-				properties: ['BLERead'],
-				structure: ['Float32'],
-				data: { pressure: [] }
 			}
 		}
 
@@ -229,6 +243,14 @@ class Arduino extends EventEmitter {
 		const data = characteristic.data
 		const columns = Object.keys(data) // column headings for this sensor
 
+		if (sensor === 'color') {
+			console.log('color')
+		}
+
+		if (sensor === 'light') {
+			console.log('light')
+		}
+
 		const typeMap = {
 			Uint8: { fn: DataView.prototype.getUint8, bytes: 1 },
 			Uint16: { fn: DataView.prototype.getUint16, bytes: 2 },
@@ -301,16 +323,24 @@ class Arduino extends EventEmitter {
 		return ORIENTATION
 	}
 
-	static get COLORIMETER() {
-		return COLORIMETER
+	static get LIGHT() {
+		return LIGHT
 	}
 
-	static get MICROPHONE() {
-		return MICROPHONE
+	static get COLOR() {
+		return COLOR
 	}
 
 	static get PROXIMITY() {
 		return PROXIMITY
+	}
+
+	static get GESTURE() {
+		return GESTURE
+	}
+
+	static get PRESSURE() {
+		return PRESSURE
 	}
 
 	static get TEMPERATURE() {
@@ -321,8 +351,8 @@ class Arduino extends EventEmitter {
 		return HUMIDITY
 	}
 
-	static get PRESSURE() {
-		return PRESSURE
+	static get MICROPHONE() {
+		return MICROPHONE
 	}
 
 	static get CONNECTED() {
@@ -358,4 +388,4 @@ const stddev = arr => {
 	)
 }
 
-module.exports = Arduino
+module.exports = Nano33BLE

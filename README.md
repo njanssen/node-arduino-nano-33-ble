@@ -5,9 +5,9 @@ Node.js interface for the Arduino [Nano 33 BLE](https://www.arduino.cc/en/Guide/
 
 ## What does this library do?
 
-This library makes it easy to listen to data from one or more sensors on a Arduino Nano 33 BLE and Nano 33 BLE Sense. The library utilizes the on-board Bluetooth Low Energy connectivity of this microcontroller board.
+This library makes it easy to listen to data from one or more sensors on a Arduino Nano 33 BLE and Nano 33 BLE Sense. The library utilizes the on-board Bluetooth Low Energy connectivity.
 
-Supported IMU sensors found on both the Nano 33 BLE and Nano 33 BLE Sense:
+Supported inertial measurement unit (IMU) sensors found on both the Nano 33 BLE and Nano 33 BLE Sense:
 
 -   Accelerometer
 -   Gyroscope
@@ -15,12 +15,14 @@ Supported IMU sensors found on both the Nano 33 BLE and Nano 33 BLE Sense:
 
 Supported sensors found on the Nano 33 BLE Sense only:
 
--   Colorimeter
--   Microphone
--   Proximity
+-   Digital microphone
 -   Temperature
--   Humidity
+-   Relative humidity
 -   Pressure
+-   Gesture sensor
+-   Ambient light
+-   Color
+-   Proximity
 
 The library provides the following filters and algorithms related to the IMU sensors:
 
@@ -29,10 +31,7 @@ The library provides the following filters and algorithms related to the IMU sen
 
 ## Prerequisites
 
-This module requires 
-
-- a Bluetooth Low Energy adapter. Connectivity is provided by the 
-- an Arduino Nano 33 BLE or Nano 33 BLE Sense board running the companion [Bluetooth service implementation](https://github.com/njanssen/arduino-nano-33-ble) sketch.
+This module requires an Arduino Nano 33 BLE or Nano 33 BLE Sense board running the companion [Bluetooth service implementation](https://github.com/njanssen/arduino-nano-33-ble) sketch.
 
 ## Installation
 
@@ -45,33 +44,36 @@ npm install @vliegwerk/arduino-nano-33-ble --save
 The following code can be used to start listening to sensor data received from your microcontroller:
 
 ```
-const Arduino = require('../')
-const arduino = new Arduino()
+const Nano33BLE = require('@vliegwerk/arduino-nano-33-ble')
+const nano33ble = new Nano33BLE()
 
-console.log('Connecting...')
-arduino.connect()
+nano33ble.connect().then(connected => {
+	if (!connected) {
+		console.log('Unable to connect to Nano 33 BLE service')
+	}
+})
 
-arduino.on('connected', id => {
+nano33ble.on('connected', id => {
 	console.log(`Connected to ${id}`)
 
-	arduino.on('accelerometer', data => {
+	nano33ble.on('accelerometer', data => {
 		console.log('Accelerometer:', data)
 	})
 
-	arduino.on('gyroscope', data => {
+	nano33ble.on('gyroscope', data => {
 		console.log('Gyroscope:', data)
 	})
 
-	arduino.on('magnetometer', data => {
+	nano33ble.on('magnetometer', data => {
 		console.log('Magnetometer:', data)
 	})
 })
 
-arduino.on('error', err => {
+nano33ble.on('error', err => {
 	console.error(err.message)
 })
 
-arduino.on('disconnected', id => {
+nano33ble.on('disconnected', id => {
 	console.log(`Disconnected from ${id}`)
 })
 ```
@@ -79,7 +81,6 @@ arduino.on('disconnected', id => {
 This will output the following in the console:
 
 ```
-Connecting...
 Connected to c5-29-67-c0-36-ca
 Accelerometer: { x: -0.431396484375, y: 0.816650390625, z: 0.302490234375 }
 Gyroscope: { x: 2.99072265625, y: 2.99072265625, z: 1.953125 }
@@ -90,7 +91,10 @@ Magnetometer: { x: -6.982421875, y: -19.3603515625, z: -37.2802734375 }
 ..
 ```
 
+For more examples, see the `examples` folder in the [node-arduino-nano-33-ble repository](https://github.com/njanssen/node-arduino-nano-33-ble/tree/master/examples) on GitHub.
+
 ## Extras
 
+-   The bluetooth connectivity implementation of this library is based on the Web Dashboard example in the [Arduino and AI](https://github.com/arduino/ArduinoAI) repository by Arduino.
 -   See the [License](LICENSE) file for license rights and limitations (MIT).
 -   Pull Requests are welcome!

@@ -1,34 +1,40 @@
-const Arduino = require('../')
+const Nano33BLE = require('../')
 
-const arduino = new Arduino({
+const nano33ble = new Nano33BLE({
 	enable: ['accelerometer'],
 	mean: true,
 	stddev: true
 })
 
 console.log('Connecting...')
-arduino.connect()
 
-arduino.on('connected', id => {
+nano33ble.connect().then(connected => {
+	if (!connected) {
+		console.log('Unable to connect to Nano 33 BLE service')
+		process.exit(1)
+	}
+})
+
+nano33ble.on('connected', id => {
 	console.log(`Connected to ${id}`)
 
-	arduino.on('accelerometer', data => {
+	nano33ble.on('accelerometer', data => {
 		console.log('Accelerometer (raw):', data)
 	})
 
-	arduino.on('accelerometer_mean', data => {
+	nano33ble.on('accelerometer_mean', data => {
 		console.log('Accelerometer (mean):', data)
 	})
 
-	arduino.on('accelerometer_stddev', data => {
+	nano33ble.on('accelerometer_stddev', data => {
 		console.log('Accelerometer (stddev):', data)
 	})
 })
 
-arduino.on('error', err => {
+nano33ble.on('error', err => {
 	console.error(err.message)
 })
 
-arduino.on('disconnected', id => {
+nano33ble.on('disconnected', id => {
 	console.log(`Disconnected from ${id}`)
 })

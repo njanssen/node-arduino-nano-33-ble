@@ -1,50 +1,65 @@
-const Arduino = require('../')
-const arduino = new Arduino({
+const Nano33BLE = require('../')
+const nano33ble = new Nano33BLE({
 	enable: [
-		'colorimeter',
-		'microphone',
+		'light',
+		'color',
 		'proximity',
+		'gesture',
+		'pressure',
 		'temperature',
-		'humidity',
-		'pressure'
+		'humidity'
 	]
 })
 
 console.log('Connecting...')
-arduino.connect()
 
-arduino.on('connected', id => {
-	console.log(`Connected to ${id}`)
-
-	arduino.on('colorimeter', data => {
-		console.log('Colorimeter:', data)
-	})
-
-	arduino.on('microphone', data => {
-		console.log('Microphone:', data)
-	})
-	
-	arduino.on('proximity', data => {
-		console.log('Proximity:', data)
-	})
-	
-	arduino.on('temperature', data => {
-		console.log('Temperature:', data)
-	})
-	
-	arduino.on('humidity', data => {
-		console.log('Humidity:', data)
-	})
-	
-	arduino.on('pressure', data => {
-		console.log('Pressure:', data)
-	})	
+nano33ble.connect().then(connected => {
+	if (!connected) {
+		console.log('Unable to connect to Nano 33 BLE service')
+		process.exit(1)
+	}
 })
 
-arduino.on('error', err => {
+nano33ble.on('connected', id => {
+	console.log(`Connected to ${id}`)
+
+	nano33ble.on('color', data => {
+		console.log('Color:', data)
+	})
+
+	nano33ble.on('light', data => {
+		console.log('Ambient light:', data)
+	})
+
+	nano33ble.on('gesture', data => {
+		console.log('Gesture:', data)
+	})
+
+	nano33ble.on('microphone', data => {
+		console.log('Microphone:', data)
+	})
+
+	nano33ble.on('proximity', data => {
+		console.log('Proximity:', data)
+	})
+
+	nano33ble.on('temperature', data => {
+		console.log('Temperature:', data)
+	})
+
+	nano33ble.on('humidity', data => {
+		console.log('Relative humidity:', data)
+	})
+
+	nano33ble.on('pressure', data => {
+		console.log('Pressure:', data)
+	})
+})
+
+nano33ble.on('error', err => {
 	console.error(err.message)
 })
 
-arduino.on('disconnected', id => {
+nano33ble.on('disconnected', id => {
 	console.log(`Disconnected from ${id}`)
 })

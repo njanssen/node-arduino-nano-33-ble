@@ -1,7 +1,7 @@
 {
   "name": "@vliegwerk/arduino-nano-33-ble",
   "version": "1.0.0",
-  "description": "Node.js interface for the Arduino Nano 33 BLE and Arduino Nano 33 BLE Sense",
+  "description": "Node.js interface for the Arduino Nano 33 BLE and Nano 33 BLE Sense",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,7 +11,7 @@
     "url": "git+https://github.com/njanssen/node-arduino-nano-33-ble.git"
   },
   "author": "Niels Janssen",
-  "license": "MIT",
+  "license": "GPL-3.0 OR MIT",
   "bugs": {
     "url": "https://github.com/njanssen/node-arduino-nano-33-ble/issues"
   },
