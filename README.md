@@ -24,7 +24,7 @@ Supported sensors found on the Nano 33 BLE Sense only:
 -   Color
 -   Proximity
 
-The library provides the following filters and algorithms related to the IMU sensors:
+The library provides the following filters and algorithms:
 
 -   Moving mean and standard deviation for a configurable window size.
 -   Arduino's official [Madgwick AHRS sensor fusion algorithm implementation](https://github.com/arduino-libraries/MadgwickAHRS) running on the microcontroller board for orientation (heading, pitch, and roll).
