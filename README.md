@@ -31,7 +31,7 @@ The library provides the following filters and algorithms:
 
 ## Prerequisites
 
-This module requires an Arduino Nano 33 BLE or Nano 33 BLE Sense board running the companion [Bluetooth service implementation](https://github.com/njanssen/arduino-nano-33-ble) sketch.
+This module requires an Arduino Nano 33 BLE or Nano 33 BLE Sense microcontroller board running the Arduino [Nano33BLEService](https://github.com/njanssen/arduino-nano-33-ble) sketch.
 
 ## Installation
 
