@@ -57,7 +57,7 @@ nano33ble.on('connected', id => {
 })
 
 nano33ble.on('error', err => {
-	console.error(err.message)
+	console.error(err)
 })
 
 nano33ble.on('disconnected', id => {

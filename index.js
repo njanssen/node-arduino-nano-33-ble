@@ -195,34 +195,38 @@ class Nano33BLE extends EventEmitter {
 		for (const sensor of this.sensors) {
 			if (!this.enable.includes(sensor)) continue
 
-			this.characteristics[
-				sensor
-			].characteristic = await service.getCharacteristic(
-				this.characteristics[sensor].uuid
-			)
-
-			// Set up notification
-			if (this.characteristics[sensor].properties.includes('BLENotify')) {
-				this.characteristics[sensor].characteristic.on(
-					'characteristicvaluechanged',
-					event => {
-						this.handleIncoming(sensor, event.target.value)
-					}
-				)
-				await this.characteristics[
+			try {
+				this.characteristics[
 					sensor
-				].characteristic.startNotifications()
-			}
+				].characteristic = await service.getCharacteristic(
+					this.characteristics[sensor].uuid
+				)
 
-			// Set up polling for read
-			if (this.characteristics[sensor].properties.includes('BLERead')) {
-				this.characteristics[sensor].polling = setInterval(() => {
-					this.characteristics[sensor].characteristic
-						.readValue()
-						.then(data => {
-							this.handleIncoming(sensor, data)
-						})
-				}, this.pollingInterval)
+				// Set up notification
+				if (this.characteristics[sensor].properties.includes('BLENotify')) {
+					this.characteristics[sensor].characteristic.on(
+						'characteristicvaluechanged',
+						event => {
+							this.handleIncoming(sensor, event.target.value)
+						}
+					)
+					await this.characteristics[
+						sensor
+					].characteristic.startNotifications()
+				}
+
+				// Set up polling for read
+				if (this.characteristics[sensor].properties.includes('BLERead')) {
+					this.characteristics[sensor].polling = setInterval(() => {
+						this.characteristics[sensor].characteristic
+							.readValue()
+							.then(data => {
+								this.handleIncoming(sensor, data)
+							})
+					}, this.pollingInterval)
+				}
+			} catch (err) {
+				this.emit(ERROR, `Characteristic ${sensor} is enabled, but not available in the BLE service`)
 			}
 		}
 
@@ -242,14 +246,6 @@ class Nano33BLE extends EventEmitter {
 		const characteristic = this.characteristics[sensor]
 		const data = characteristic.data
 		const columns = Object.keys(data) // column headings for this sensor
-
-		if (sensor === 'color') {
-			console.log('color')
-		}
-
-		if (sensor === 'light') {
-			console.log('light')
-		}
 
 		const typeMap = {
 			Uint8: { fn: DataView.prototype.getUint8, bytes: 1 },

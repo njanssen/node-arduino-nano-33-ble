@@ -3,8 +3,6 @@ const nano33ble = new Nano33BLE()
 
 console.log('Connecting...')
 
-console.log('Connecting...')
-
 nano33ble.connect().then(connected => {
 	if (!connected) {
 		console.log('Unable to connect to Nano 33 BLE service')
