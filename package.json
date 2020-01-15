@@ -1,6 +1,6 @@
 {
   "name": "@vliegwerk/arduino-nano-33-ble",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node.js interface for the Arduino Nano 33 BLE and Nano 33 BLE Sense",
   "main": "index.js",
   "scripts": {
